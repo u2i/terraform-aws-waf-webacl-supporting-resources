@@ -32,7 +32,7 @@ resource "aws_s3_bucket" "webacl_traffic_information" {
     enabled = "true"
   }
 
-  tags {
+  tags = {
     Name          = "${lower(var.service_name)}-webacl-${data.aws_region.this.name}-${data.aws_caller_identity.this.account_id}-${random_id.this.hex}"
     Description   = "Bucket for storing ${lower(var.service_name)} WebACL traffic information"
     ProductDomain = "${lower(var.product_domain)}"
@@ -62,24 +62,22 @@ resource "aws_glue_catalog_table" "table" {
     classification = "Parquet"
   }
 
-  partition_keys = [
-    {
-      name = "year"
-      type = "int"
-    },
-    {
-      name = "month"
-      type = "int"
-    },
-    {
-      name = "day"
-      type = "int"
-    },
-    {
-      name = "hour"
-      type = "int"
-    },
-  ]
+  partition_keys {
+    name = "year"
+    type = "int"
+  }
+  partition_keys {
+    name = "month"
+    type = "int"
+  }
+  partition_keys {
+    name = "day"
+    type = "int"
+  }
+  partition_keys {
+    name = "hour"
+    type = "int"
+  }
 
   storage_descriptor {
     location      = "s3://${aws_s3_bucket.webacl_traffic_information.id}/logs"
@@ -91,56 +89,54 @@ resource "aws_glue_catalog_table" "table" {
       serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
     }
 
-    columns = [
-      {
-        name = "timestamp"
-        type = "timestamp"
-      },
-      {
-        name = "formatversion"
-        type = "int"
-      },
-      {
-        name = "webaclid"
-        type = "string"
-      },
-      {
-        name = "terminatingruleid"
-        type = "string"
-      },
-      {
-        name = "terminatingruletype"
-        type = "string"
-      },
-      {
-        name = "action"
-        type = "string"
-      },
-      {
-        name = "httpsourcename"
-        type = "string"
-      },
-      {
-        name = "httpsourceid"
-        type = "string"
-      },
-      {
-        name = "rulegrouplist"
-        type = "array<struct<ruleGroupId:string,terminatingRule:string,nonTerminatingMatchingRules:array<struct<action:string,ruleId:string>>,excludedRules:array<struct<exclusionType:string,ruleId:string>>>>"
-      },
-      {
-        name = "ratebasedrulelist"
-        type = "array<struct<rateBasedRuleId:string,limitKey:string,maxRateAllowed:int>>"
-      },
-      {
-        name = "nonterminatingmatchingrules"
-        type = "array<struct<action:string,ruleId:string>>"
-      },
-      {
-        name = "httprequest"
-        type = "struct<clientIp:string,country:string,headers:array<struct<name:string,value:string>>,uri:string,args:string,httpVersion:string,httpMethod:string,requestId:string>"
-      },
-    ]
+    columns {
+      name = "timestamp"
+      type = "timestamp"
+    }
+    columns {
+      name = "formatversion"
+      type = "int"
+    }
+    columns {
+      name = "webaclid"
+      type = "string"
+    }
+    columns {
+      name = "terminatingruleid"
+      type = "string"
+    }
+    columns {
+      name = "terminatingruletype"
+      type = "string"
+    }
+    columns {
+      name = "action"
+      type = "string"
+    }
+    columns {
+      name = "httpsourcename"
+      type = "string"
+    }
+    columns {
+      name = "httpsourceid"
+      type = "string"
+    }
+    columns {
+      name = "rulegrouplist"
+      type = "array<struct<ruleGroupId:string,terminatingRule:string,nonTerminatingMatchingRules:array<struct<action:string,ruleId:string>>,excludedRules:array<struct<exclusionType:string,ruleId:string>>>>"
+    }
+    columns {
+      name = "ratebasedrulelist"
+      type = "array<struct<rateBasedRuleId:string,limitKey:string,maxRateAllowed:int>>"
+    }
+    columns {
+      name = "nonterminatingmatchingrules"
+      type = "array<struct<action:string,ruleId:string>>"
+    }
+    columns {
+      name = "httprequest"
+      type = "struct<clientIp:string,country:string,headers:array<struct<name:string,value:string>>,uri:string,args:string,httpVersion:string,httpMethod:string,requestId:string>"
+    }
   }
 }
 
@@ -172,7 +168,7 @@ data "aws_iam_policy_document" "firehose_assume_role_policy" {
       "sts:AssumeRole",
     ]
 
-    principals = {
+    principals {
       type = "Service"
 
       identifiers = [
@@ -192,7 +188,7 @@ resource "aws_iam_role" "firehose" {
   force_detach_policies = "false"
   max_session_duration  = "43200"
 
-  tags {
+  tags = {
     Name          = "ServiceRoleForFirehose_${lower(var.service_name)}-WebACL-${random_id.this.hex}"
     Description   = "Service Role for ${lower(var.service_name)}-WebACL Firehose"
     ProductDomain = "${lower(var.product_domain)}"
@@ -207,7 +203,7 @@ data "aws_iam_policy_document" "allow_s3_actions" {
   statement {
     effect = "Allow"
 
-    principals = {
+    principals {
       type = "AWS"
 
       identifiers = [
